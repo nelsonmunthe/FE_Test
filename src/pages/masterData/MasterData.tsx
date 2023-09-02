@@ -1,58 +1,36 @@
-import { Button, Input } from "@mui/material";
+import { Box, Button, TextField } from "@mui/material";
 import Header from "../../components/Header";
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import axios from "axios";
 import { useEffect, useState } from "react";
 import ViewFoto from "../../components/ViewFoto";
-import { useNavigate } from "react-router-dom";
 import { useSnackbar } from "notistack";
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { styled, alpha } from '@mui/material/styles';
 import SearchIcon from '@mui/icons-material/Search';
-import InputBase from '@mui/material/InputBase';
 import Pagination from "../../models/Pagination";
-import Chart from '../../models/Chart'
 import ViewRuas from "./ViewRuas";
 import AddRuas from "./AddRuas";
-import Ruas from "../../models/Ruas";
 import DeleteRuas from "./DeleteRuas";
 import UpdateRuas from "./UpdateRuas";
-
+import useRuas from "../../components/hooks/useRuas";
+import { useNavigate } from "react-router-dom";
 
 const MasterData:React.FC = () => {
     const API_URL = `${process.env.REACT_APP_API_URL}`;
-    const [rows, setRows] = useState<Ruas[]>([]);
     const [openFoto, setOpenFoto] = useState(false);
     const [foto, setFoto] = useState('');
-    const navigate = useNavigate();
-    const [pagination, setPagination] = useState<Pagination>({page: 0, per_page: 5});
-    const [totalRow, setTotalRow] = useState(0);
     const { enqueueSnackbar } = useSnackbar();
     const [openView, setOpenView] = useState(false);
     const [openDelete, setOpenDelete] = useState(false);
     const [openEdit, setOpenEdit] = useState(false);
     const [openAdd, setOpenAdd] = useState(false);
     const [selectedRow, setSelectedRow] = useState<Array<number>>();
-    const [ruas, setRuas] = useState<Ruas>(
-        {
-            id: 0,
-            unit_id: 0,
-            ruas_name: '',
-            long: 0,
-            km_awal: '',
-            km_akhir: '',
-            photo_url: '',
-            doc_url: '',
-            status: '',
-            created_at: '',
-            updated_at: ''
-        }
-    );
-    const [searchById, setSearchById] = useState<string>()
+    const navigate = useNavigate();
 
+    const {totalRow, rows, setSearchById, searchById, setPagination, pagination, fetchDataRuas}  = useRuas()
 
     const columns: GridColDef[] = [
         { 
@@ -133,7 +111,6 @@ const MasterData:React.FC = () => {
         },
     ];
 
-
     const onViewdocument = (params: any)  => {
         window.open(params.value, "_blank");
     };
@@ -151,35 +128,6 @@ const MasterData:React.FC = () => {
         fetchDataRuas()
     }, [pagination]);
 
-    useEffect(() => {
-        if(searchById) onSearchById()
-        else fetchDataRuas()
-    }, [searchById])
-    
-    const fetchDataRuas = async() => {
-        try {
-            let params = `per_page=${pagination.per_page}&page=${pagination.page}`
-            const response = await axios.get(`${API_URL}/ruas?${params}`, {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem("token")}`
-                }
-            });
-
-            if(response.status){
-                setRows(response.data.data);
-                setTotalRow(response.data.total)       
-                
-            } else {
-                enqueueSnackbar('something went wrong', { variant: "error"});
-            }
-        } catch (error: any) {
-            if(error.response.status === 401){
-                navigate('/login')
-            }  
-            return enqueueSnackbar('something went wrong', { variant: "error"});
-        }
-    };
-
     const handlePageChange = (pagination: any) => {    
         setPagination((prev: Pagination) => {
             return{
@@ -189,47 +137,6 @@ const MasterData:React.FC = () => {
             }
         })
     };
-
-    const Search = styled('div')(({ theme }) => ({
-        position: 'relative',
-        borderRadius: theme.shape.borderRadius,
-        backgroundColor: alpha(theme.palette.common.white, 0.15),
-        '&:hover': {
-          backgroundColor: alpha(theme.palette.common.white, 0.25),
-        },
-        marginRight: theme.spacing(2),
-        marginLeft: 0,
-        width: '100%',
-        [theme.breakpoints.up('sm')]: {
-          marginLeft: theme.spacing(3),
-          width: 'auto',
-        },
-    }));
-
-    const SearchIconWrapper = styled('div')(({ theme }) => ({
-    padding: theme.spacing(0, 2),
-    height: '100%',
-    position: 'absolute',
-    pointerEvents: 'none',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    }));
-
-
-    const StyledInputBase = styled(InputBase)(({ theme }) => ({
-        color: 'inherit',
-        '& .MuiInputBase-input': {
-        padding: theme.spacing(1, 1, 1, 0),
-        // vertical padding + font size from searchIcon
-        paddingLeft: `calc(1em + ${theme.spacing(4)})`,
-        transition: theme.transitions.create('width'),
-        width: '100%',
-        [theme.breakpoints.up('md')]: {
-            width: '20ch',
-        },
-        },
-    }));
 
     const onHandleCloseView = () => {
         setOpenView(prev => !prev)
@@ -272,38 +179,21 @@ const MasterData:React.FC = () => {
                 onHandleDelete()
                 enqueueSnackbar(`Suceed Delete Ruas Id ${selectedRow}`, { variant: "success"});
             }
-        } catch (error) {
-            console.log(error)
+        } catch (error: any) {
+            if(error.response.status === 401) {
+                navigate('/login')
+                return enqueueSnackbar(error.response.statusText, { variant: "error"});
+            }
+            return enqueueSnackbar(error.response.statusText, { variant: "error"});
         }
     }
 
 
     const onChangeSearch = async (event: any) => {
         const value = event.target.value;
-        if(value == '') setSearchById('')
+        if(value === '') setSearchById('')
         else setSearchById(event.target.value)
     };
-   
-    const onSearchById = async () => {
-        try {
-            const response = await axios(`${API_URL}/ruas/${searchById}`, {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem("token")}`
-                }
-            });
-            
-            if(response.status === 200){
-                setRows([response.data.data])
-            }
-        } catch (error) {
-            return enqueueSnackbar('Failed searching', { variant: "error"});
-        }
-    }
-
-    const onHandleSearchById = () => {
-        if(!searchById) return enqueueSnackbar('Search Field Empty', { variant: "error"});
-        onSearchById()
-    }
 
     const onHandleNewRuas = () => {
         setOpenAdd(true)
@@ -313,14 +203,18 @@ const MasterData:React.FC = () => {
         <div>
             <Header />
             <div className="px-48 py-2 flex flex-col">
-                <p className="text-lg font-bold	"><span>Master Data</span></p>
+                <p className="text-3xl font-bold mt-2"><span>Master Data</span></p>
                 <div className="flex justify-end gap-2">
-                    <Input 
-                        value={searchById}
-                        onChange={(value) => onChangeSearch(value)}
-                        inputProps={{ 'aria-label': 'search' }}
-                    />
-                    <Button onClick={onHandleSearchById} disabled={searchById === '' || searchById === undefined ? true: false} variant="outlined" startIcon={<SearchIcon />}>Search</Button>
+                    <Box sx={{ display: 'flex', alignItems: 'flex-end' }}>
+                        <SearchIcon sx={{ color: 'action.active', mr: 1, my: 0.5 }} />
+                        <TextField 
+                            id="input-with-sx" 
+                            label="Type Id to searching..." 
+                            variant="standard"
+                            value={searchById}
+                            onChange={(value) => onChangeSearch(value)}
+                        />
+                    </Box>
                     <Button onClick={onHandleNewRuas} variant="contained" startIcon={<AddIcon />}>Tambah</Button>
                 </div>
 
@@ -351,7 +245,7 @@ const MasterData:React.FC = () => {
                         pageSizeOptions={[5, 10, 25]}
                         onPaginationModelChange={handlePageChange}
                     />
-            </div>
+                </div>
             </div>
             <ViewFoto 
                 open={openFoto}

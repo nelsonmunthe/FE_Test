@@ -11,16 +11,9 @@ import Checkbox from '@mui/material/Checkbox';
 import axios from 'axios';
 import { useSnackbar } from 'notistack';
 import CircularProgress from '@mui/material/CircularProgress';
+import NewRuas from '../../models/NewRuas';
+import { useNavigate } from 'react-router-dom';
 const API_URL = `${process.env.REACT_APP_API_URL}`;
-
-type Ruas = {
-    unit_id: number,
-    ruas_name: string,
-    long: number,
-    km_awal: string,
-    km_akhir: string,
-    status: string,
-}
 
 const data = {
     unit_id: 0,
@@ -69,12 +62,13 @@ const UpdateRuas:React.FC<
         id
     }
 ) => {
-    const [newRuas, setNewRuas] = useState<Ruas>(data)
+    const [newRuas, setNewRuas] = useState<NewRuas>(data)
     const [units, setUnits] = useState([0]);
     const [fileList, setFileList] = useState<File | null>(null);
     const [photo, setPhoto] = useState<File | null>(null);
     const { enqueueSnackbar } = useSnackbar();
     const [loading, setLoading] = useState(false)
+    const navigate = useNavigate();
 
     useEffect(() => {
         let refresh = true;
@@ -89,7 +83,7 @@ const UpdateRuas:React.FC<
     useEffect(() => {
         getRuas()
     }, [id])
-
+    
     const getRuas = async () => {
         try {
             if(!open) return
@@ -101,14 +95,18 @@ const UpdateRuas:React.FC<
             if(units.status === 200){
                 setNewRuas(units.data.data)
             }
-        } catch (error) {
+        } catch (error: any) {
+            if(error.response.status === 401) {
+                navigate('/login')
+                return enqueueSnackbar(error.response.statusText, { variant: "error"});
+            }
             enqueueSnackbar('Failed get detail', { variant: "error"});
         }
     }
 
 
     const onChangeRuasName = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setNewRuas((prev: Ruas) => {
+        setNewRuas((prev: NewRuas) => {
             return{
                 ...prev,
                 ruas_name: event.target.value
@@ -126,7 +124,7 @@ const UpdateRuas:React.FC<
     }
 
     const onChangeKmAwal = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setNewRuas((prev: Ruas) => {
+        setNewRuas((prev: NewRuas) => {
             return{
                 ...prev,
                 km_awal: event.target.value
@@ -135,7 +133,7 @@ const UpdateRuas:React.FC<
     }
 
     const onChangeKmAkhir = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setNewRuas((prev: Ruas) => {
+        setNewRuas((prev: NewRuas) => {
             return{
                 ...prev,
                 km_akhir: event.target.value
@@ -154,7 +152,7 @@ const UpdateRuas:React.FC<
     };
 
     const onChangeStatus = (event: any) => {
-        setNewRuas((prev: Ruas) => {
+        setNewRuas((prev: NewRuas) => {
             return{
                 ...prev,
                 status: prev.status === '1' ? '0' : '1'
@@ -164,7 +162,6 @@ const UpdateRuas:React.FC<
 
     const onSubmitHandler = async () => {
         try {
-            console.log(newRuas)
             setLoading(true)
             if(!newRuas.unit_id || !newRuas.ruas_name || !newRuas.long || !newRuas.km_awal || !newRuas.km_akhir || !newRuas.status || !fileList || !photo){
                 setLoading(false)
@@ -172,6 +169,7 @@ const UpdateRuas:React.FC<
             }
             
             const body = {
+                _method: 'PUT',
                 unit_id: newRuas.unit_id,
                 ruas_name: newRuas.ruas_name,
                 long: newRuas.long,
@@ -182,13 +180,15 @@ const UpdateRuas:React.FC<
                 photo: photo
             }
             
-            const posting = await axios.post(`${API_URL}/ruas`, body, {
+            const posting = await axios.post(`${API_URL}/ruas/${id![0]}`, body, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("token")}`,
-                    "Content-Type": "multipart/form-data",
+                    'Accept': 'application/json',
+                    'Content-Type': 'multipart/form-data',
                 }
             })
-            if(posting.status === 201) {
+            
+            if(posting.status === 200) {
                 fetchDataRuas()
                 setNewRuas(data)
                 setLoading(false)
@@ -202,6 +202,10 @@ const UpdateRuas:React.FC<
             
         } catch (error: any) {
             setLoading(false)
+            if(error.response.status === 401) {
+                navigate('/login')
+                return enqueueSnackbar(error.response.statusText, { variant: "error"});
+            }
             return enqueueSnackbar(error.response.statusText, { variant: "error"});
         }
     };
@@ -219,11 +223,14 @@ const UpdateRuas:React.FC<
                 for(let item of units.data.data){
                     unitId.push(item.id)
                 }
-                console.log(unitId)
                 setUnits(unitId)
             }
-        } catch (error) {
-            console.log(error)
+        } catch (error: any) {
+            if(error.response.status === 401) {
+                navigate('/login')
+                return enqueueSnackbar(error.response.statusText, { variant: "error"});
+            }
+            return enqueueSnackbar(error.response.statusText, { variant: "error"});
         }
     }
 
@@ -231,7 +238,6 @@ const UpdateRuas:React.FC<
         if(event.target.files){
             setPhoto(event.target.files[0]);
         }
-        
     };
 
     const onChangeFile = (event: ChangeEvent<HTMLInputElement>) => {

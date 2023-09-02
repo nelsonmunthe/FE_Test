@@ -1,70 +1,13 @@
 
 import { useState } from 'react';
-import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
-import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
-import Link from '@mui/material/Link';
-import Paper from '@mui/material/Paper';
-import Box from '@mui/material/Box';
-import Grid from '@mui/material/Grid';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
-import Typography from '@mui/material/Typography';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useSnackbar } from "notistack";
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import UserLogin from '../../models/UserLogin';
 import logo from '../../images/jasa_marga.png';
 import logo1 from '../../images/jasa_marga_1.png'
-
-import { styled } from '@mui/material/styles';
-import Card from '@mui/material/Card';
-import CardHeader from '@mui/material/CardHeader';
-import CardMedia from '@mui/material/CardMedia';
-import CardContent from '@mui/material/CardContent';
-import CardActions from '@mui/material/CardActions';
-import Collapse from '@mui/material/Collapse';
-import IconButton, { IconButtonProps } from '@mui/material/IconButton';
-import { red } from '@mui/material/colors';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import ShareIcon from '@mui/icons-material/Share';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-
-
-interface ExpandMoreProps extends IconButtonProps {
-  expand: boolean;
-}
-
-const ExpandMore = styled((props: ExpandMoreProps) => {
-  const { expand, ...other } = props;
-  return <IconButton {...other} />;
-})(({ theme, expand }) => ({
-  transform: !expand ? 'rotate(0deg)' : 'rotate(180deg)',
-  marginLeft: 'auto',
-  transition: theme.transitions.create('transform', {
-    duration: theme.transitions.duration.shortest,
-  }),
-}));
-
-function Copyright(props: any) {
-  return (
-    <Typography variant="body2" color="text.secondary" align="center" {...props}>
-      {'Copyright © '}
-      <Link color="inherit" href="https://mui.com/">
-        Your Website
-      </Link>{' '}
-      {new Date().getFullYear()}
-      {'.'}
-    </Typography>
-  );
-}
-
-// TODO remove, this demo shouldn't need to reset the theme.
-const defaultTheme = createTheme();
 
 const Login:React.FC = () => {
   const API_URL = `${process.env.REACT_APP_API_URL}`;
@@ -88,7 +31,6 @@ const Login:React.FC = () => {
   }
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    console.log('bu')
     event.preventDefault();
     if(!loginData.password || !loginData.username) return enqueueSnackbar("Username or password is Empty", { variant: "error"});
     loginHandler()
@@ -116,10 +58,10 @@ const Login:React.FC = () => {
     <div className='flex flex-row'>
       <div className='flex-1 '>
           <form onSubmit={handleSubmit} className='flex flex-col justify-center items-center	gap-2 w-full h-full py-40'>
-            <p className='flex-auto w-96 h-32 '>
+            <div className='flex-auto w-96 h-32 mb-4'>
                 <img src={logo} alt="Logo"/>
-            </p>
-            <p className='flex flex-col  w-96 h-32 gap-2'>
+            </div>
+            <div className='flex flex-col  w-96 h-32 gap-x-1'>
                 <label htmlFor="username">Username</label>
                 <TextField 
                   margin="normal"
@@ -133,8 +75,8 @@ const Login:React.FC = () => {
                   onChange={onChangeUsername}
                   autoFocus
                 />
-            </p>
-            <p className='flex flex-col  w-96 h-32 gap-2 '>
+            </div>
+            <div className='flex flex-col  w-96 h-32 gap-x-1 '>
             <label htmlFor="password">Password</label>
                 <TextField 
                   margin="normal"
@@ -148,10 +90,10 @@ const Login:React.FC = () => {
                   onChange={onChangePassword}
                   autoComplete="current-password"
                 />
-            </p>
-            <p className='flex flex-col flex-end w-96 h-60 gap-2 '>
-                <Button type='submit' variant="contained" className='flex flex-end w-32'>Login</Button>
-            </p>
+            </div>
+            <div className='flex flex-row flex-row-reverse w-96  gap-x-1 '>
+                <Button type='submit' variant="contained" className='w-32'>Login</Button>
+            </div>
           </form>
       </div>
       <div className='flex-1'>

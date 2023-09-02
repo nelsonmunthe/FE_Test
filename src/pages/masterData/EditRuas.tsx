@@ -3,7 +3,6 @@ import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import Autocomplete from '@mui/material/Autocomplete';
 import DialogTitle from '@mui/material/DialogTitle';
 import Paper, { PaperProps } from '@mui/material/Paper';
 import Draggable from 'react-draggable';
@@ -11,16 +10,8 @@ import { FormControl, FormControlLabel, Input, MenuItem, OutlinedInput, Select, 
 import Checkbox from '@mui/material/Checkbox';
 import axios from 'axios';
 import { useSnackbar } from 'notistack';
+import NewRuas from '../../models/NewRuas';
 const API_URL = `${process.env.REACT_APP_API_URL}`;
-
-type Ruas = {
-    unit_id: number,
-    ruas_name: string,
-    long: number,
-    km_awal: string,
-    km_akhir: string,
-    status: string,
-}
 
 const data = {
     unit_id: 0,
@@ -65,7 +56,7 @@ const EditRuas:React.FC<
         onClose
     }
 ) => {
-    const [newRuas, setNewRuas] = useState<Ruas>(data)
+    const [newRuas, setNewRuas] = useState<NewRuas>(data)
     const [units, setUnits] = useState([0]);
     const [fileList, setFileList] = useState<File | null>(null);
     const [photo, setPhoto] = useState<File | null>(null);
@@ -83,7 +74,7 @@ const EditRuas:React.FC<
 
 
     const onChangeRuasName = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setNewRuas((prev: Ruas) => {
+        setNewRuas((prev: NewRuas) => {
             return{
                 ...prev,
                 ruas_name: event.target.value
@@ -101,7 +92,7 @@ const EditRuas:React.FC<
     }
 
     const onChangeKmAwal = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setNewRuas((prev: Ruas) => {
+        setNewRuas((prev: NewRuas) => {
             return{
                 ...prev,
                 km_awal: event.target.value
@@ -110,7 +101,7 @@ const EditRuas:React.FC<
     }
 
     const onChangeKmAkhir = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setNewRuas((prev: Ruas) => {
+        setNewRuas((prev: NewRuas) => {
             return{
                 ...prev,
                 km_akhir: event.target.value
@@ -129,7 +120,7 @@ const EditRuas:React.FC<
     };
 
     const onChangeStatus = (event: any) => {
-        setNewRuas((prev: Ruas) => {
+        setNewRuas((prev: NewRuas) => {
             return{
                 ...prev,
                 status: prev.status === '1' ? '0' : '1'
@@ -139,7 +130,6 @@ const EditRuas:React.FC<
 
     const onSubmitHandler = async () => {
         try {
-            console.log(!newRuas.unit_id, !newRuas.ruas_name, !newRuas.long, !newRuas.km_awal, !newRuas.km_akhir, !fileList, !photo)
             if(!newRuas.unit_id || !newRuas.ruas_name || !newRuas.long || !newRuas.km_awal || !newRuas.km_akhir || !newRuas.status || !fileList || !photo){
                 return enqueueSnackbar('Invalid Form', { variant: "error"});
             }
@@ -161,7 +151,6 @@ const EditRuas:React.FC<
                     "Content-Type": "multipart/form-data",
                 }
             })
-            console.log(posting)
             if(posting.status === 201) {
                 onClose()
                 return enqueueSnackbar('Add New Ruas Succeed', { variant: "success"});
@@ -185,11 +174,10 @@ const EditRuas:React.FC<
                 for(let item of units.data.data){
                     unitId.push(item.id)
                 }
-                console.log(unitId)
                 setUnits(unitId)
             }
-        } catch (error) {
-            console.log(error)
+        } catch (error: any) {
+            return enqueueSnackbar(error.response.statusText, { variant: "error"});
         }
     }
 

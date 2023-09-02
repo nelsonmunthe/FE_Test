@@ -1,4 +1,4 @@
-import { useState, Fragment, ChangeEvent, useEffect } from 'react';
+import { useState, Fragment, useEffect } from 'react';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -92,7 +92,7 @@ const ViewRuas:React.FC<
         maxWidth={false}
       >
         <DialogTitle style={{ cursor: 'move' }} id="draggable-dialog-title">
-          Add New Ruas
+          View Ruas
         </DialogTitle>
         <DialogContent>
           <div className='flex flex-col gap-4 w-auto'>
@@ -165,6 +165,7 @@ const ViewRuas:React.FC<
                 <FormControlLabel  
                     control={
                         <Checkbox 
+                            disabled
                             defaultChecked={newRuas.status === '1' ? true : false}
                         />}
                      className='w-96' label={newRuas.status === '1' ? 'Aktif': 'Tidak Aktif'} 

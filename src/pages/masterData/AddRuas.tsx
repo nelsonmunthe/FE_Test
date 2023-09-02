@@ -11,16 +11,10 @@ import Checkbox from '@mui/material/Checkbox';
 import axios from 'axios';
 import { useSnackbar } from 'notistack';
 import CircularProgress from '@mui/material/CircularProgress';
-const API_URL = `${process.env.REACT_APP_API_URL}`;
+import NewRuas from '../../models/NewRuas';
+import { useNavigate } from 'react-router-dom';
 
-type Ruas = {
-    unit_id: number,
-    ruas_name: string,
-    long: number,
-    km_awal: string,
-    km_akhir: string,
-    status: string,
-}
+const API_URL = `${process.env.REACT_APP_API_URL}`;
 
 const data = {
     unit_id: 0,
@@ -67,12 +61,13 @@ const AddRuas:React.FC<
         fetchDataRuas
     }
 ) => {
-    const [newRuas, setNewRuas] = useState<Ruas>(data)
+    const [newRuas, setNewRuas] = useState<NewRuas>(data)
     const [units, setUnits] = useState([0]);
     const [fileList, setFileList] = useState<File | null>(null);
     const [photo, setPhoto] = useState<File | null>(null);
     const { enqueueSnackbar } = useSnackbar();
     const [loading, setLoading] = useState(false)
+    const navigate = useNavigate();
 
     useEffect(() => {
         let refresh = true;
@@ -86,7 +81,7 @@ const AddRuas:React.FC<
 
 
     const onChangeRuasName = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setNewRuas((prev: Ruas) => {
+        setNewRuas((prev: NewRuas) => {
             return{
                 ...prev,
                 ruas_name: event.target.value
@@ -104,7 +99,7 @@ const AddRuas:React.FC<
     }
 
     const onChangeKmAwal = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setNewRuas((prev: Ruas) => {
+        setNewRuas((prev: NewRuas) => {
             return{
                 ...prev,
                 km_awal: event.target.value
@@ -113,7 +108,7 @@ const AddRuas:React.FC<
     }
 
     const onChangeKmAkhir = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setNewRuas((prev: Ruas) => {
+        setNewRuas((prev: NewRuas) => {
             return{
                 ...prev,
                 km_akhir: event.target.value
@@ -132,7 +127,7 @@ const AddRuas:React.FC<
     };
 
     const onChangeStatus = (event: any) => {
-        setNewRuas((prev: Ruas) => {
+        setNewRuas((prev: NewRuas) => {
             return{
                 ...prev,
                 status: prev.status === '1' ? '0' : '1'
@@ -178,6 +173,10 @@ const AddRuas:React.FC<
             
         } catch (error: any) {
             setLoading(false)
+            if(error.response.status === 401){
+                navigate('/login')
+                return enqueueSnackbar(error.response.statusText, { variant: "error"});
+            }  
             return enqueueSnackbar(error.response.statusText, { variant: "error"});
         }
     };
@@ -195,11 +194,14 @@ const AddRuas:React.FC<
                 for(let item of units.data.data){
                     unitId.push(item.id)
                 }
-                console.log(unitId)
                 setUnits(unitId)
             }
-        } catch (error) {
-            console.log(error)
+        } catch (error: any) {
+            if(error.response.status === 401){
+                navigate('/login')
+                return enqueueSnackbar(error.response.statusText, { variant: "error"});
+            }  
+            return enqueueSnackbar(error.response.statusText, { variant: "error"});
         }
     }
 

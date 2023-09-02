@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { useSnackbar } from "notistack";
 import Pagination from "../../models/Pagination";
 import Chart from '../../models/Chart'
+import useRuas from "../../components/hooks/useRuas";
 
 type Cache = {
     [key: string]: number
@@ -17,32 +18,16 @@ type Cache = {
 
 type DataChart = Chart[]
   
-
 const Home:React.FC = () => {
     const API_URL = `${process.env.REACT_APP_API_URL}`;
-    const [rows, setRows] = useState([]);
     const [openFoto, setOpenFoto] = useState(false);
     const [foto, setFoto] = useState('');
     const [xLabels, setXLabels] = useState<string[]>([])
     const [pData, setPData] = useState<number[]>([0]);
     const [dataChart, setDataChart] = useState<DataChart>([]);
     const navigate = useNavigate();
-    const [pagination, setPagination] = useState<Pagination>({page: 0, per_page: 5});
-    const [totalRow, setTotalRow] = useState(0);
     const { enqueueSnackbar } = useSnackbar();
-
-    const onViewdocument = (params: any)  => {
-        window.open(params.value, "_blank");
-    };
-
-    const onHandleOpenFoto = (params: any) => {
-        setOpenFoto(prev => !prev);
-        setFoto(params.value)
-    };
-
-    const onCloseFoto = () => {
-        setOpenFoto(false)
-    }
+    const {setTotalRow, totalRow, setRows, rows, setPagination, pagination, fetchDataRuas}  = useRuas();
 
     const columns: GridColDef[] = [
         { 
@@ -109,6 +94,19 @@ const Home:React.FC = () => {
         },
     ];
 
+    const onViewdocument = (params: any)  => {
+        window.open(params.value, "_blank");
+    };
+
+    const onHandleOpenFoto = (params: any) => {
+        setOpenFoto(prev => !prev);
+        setFoto(params.value)
+    };
+
+    const onCloseFoto = () => {
+        setOpenFoto(false)
+    }
+
     useEffect(() => {
         fetchDataRuas()
     }, [pagination]);
@@ -116,29 +114,6 @@ const Home:React.FC = () => {
     useEffect(() => {
         fetchDataRuasChart()
     }, [])
-
-    const fetchDataRuas = async() => {
-        try {
-            let params = `per_page=${pagination.per_page}&page=${pagination.page}`
-            const response = await axios.get(`${API_URL}/ruas?${params}`, {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem("token")}`
-                }
-            });
-
-            if(response.status){
-                setRows(response.data.data);
-                setTotalRow(response.data.total)
-            } else {
-                enqueueSnackbar('something went wrong', { variant: "error"});
-            }
-        } catch (error: any) {
-            if(error.response.status === 401){
-                navigate('/login')
-            }  
-            return enqueueSnackbar('something went wrong', { variant: "error"});
-        }
-    };
 
     const fetchDataRuasChart = async() => {
         try {
@@ -182,11 +157,11 @@ const Home:React.FC = () => {
         } catch (error: any) {
             if(error.response.status === 401){
                 navigate('/login')
+                return enqueueSnackbar(error.response.statusText, { variant: "error"});
             }  
-            return enqueueSnackbar('something went wrong', { variant: "error"});
+            return enqueueSnackbar(error.response.statusText, { variant: "error"});
         }
     };
-
 
     const handlePageChange = (pagination: any) => {    
         setPagination((prev: Pagination) => {
@@ -202,7 +177,7 @@ const Home:React.FC = () => {
         <div>
             <Header />
             <div className="px-48 py-2 flex flex-col">
-                <p className="text-lg font-bold	"><span>Dashboard</span></p>
+                <p className="text-3xl font-bold mt-2"><span>Dashboard</span></p>
                 <div className="flex flex-row">
                     <div className="flex-initial w-8/12 justify-items-center">
                             <BarChart
@@ -215,7 +190,7 @@ const Home:React.FC = () => {
                             />
                     </div>
 
-                    <div className="flex justify-center content-center	items-center ">
+                    <div className="w-8/12 grid place-items-center">
                         <PieChart
                             series={
                                 [

@@ -14,7 +14,6 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import { Link, useNavigate } from 'react-router-dom';
 import List from "@mui/material/List";
 import { ListItem, ListItemButton, MenuItem } from '@mui/material';
-import logo from '../images/jasa_marga.png'
 
 const pages = ['dashboard', 'master-data'];
 
@@ -118,27 +117,21 @@ const Header: React.FC = () => {
             <List className='flex flex-row'>
               {
                 pages.map(item => {
-                  return <Link
-                to={`/${item}`}
-                style={{ textDecoration: "none", color: "black" }}
-              >
-                <ListItem key={`${item}`} disablePadding sx={{ display: "block" }}>
-                  <ListItemButton
-                    sx={{
-                      minHeight: 48,
-                      justifyContent: "center",
-                      px: 2.5,
-                    }}
-                  >
-                    <span className='font-medium text-base text-slate-950	' >{item}</span>
-                    {/* <ListItemText
-                      primary={item}
-                      // sx={{ opacity: 1 }}
-                      className='font-extrabold	 text-base	'
-                    /> */}
-                  </ListItemButton>
-                </ListItem>
-              </Link>
+                  return (
+                    <Link to={`/${item}`} style={{ textDecoration: "none", color: "white" }}>
+                      <ListItem key={`${item}`} disablePadding sx={{ display: "block" }}>
+                        <ListItemButton
+                          sx={{
+                            minHeight: 48,
+                            justifyContent: "center",
+                            px: 2.5,
+                          }}
+                        >
+                          <span className=' font-mono text-xl text-white'>{item}</span>
+                        </ListItemButton>
+                      </ListItem>
+                    </Link>
+                  )
                 })
               }
               
