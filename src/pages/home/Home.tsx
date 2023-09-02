@@ -1,16 +1,17 @@
 import { Button } from "@mui/material";
-import Header from "../../components/Header";
 import { BarChart } from '@mui/x-charts/BarChart';
 import { PieChart, pieArcLabelClasses } from '@mui/x-charts/PieChart';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import ViewFoto from "../../components/ViewFoto";
 import { useNavigate } from "react-router-dom";
 import { useSnackbar } from "notistack";
 import Pagination from "../../models/Pagination";
 import Chart from '../../models/Chart'
 import useRuas from "../../components/hooks/useRuas";
+import Loading from "../../components/Loading";
+const Header = lazy(() => import('../../components/Header'));
 
 type Cache = {
     [key: string]: number
@@ -174,7 +175,7 @@ const Home:React.FC = () => {
     }
     
     return(
-        <div>
+        <Suspense fallback={<Loading />}>
             <Header />
             <div className="px-48 py-2 flex flex-col">
                 <p className="text-3xl font-bold mt-2"><span>Dashboard</span></p>
@@ -248,7 +249,7 @@ const Home:React.FC = () => {
                 fotoUrl={foto}
                 onClose={onCloseFoto}
             />
-        </div>
+        </Suspense>
     )
 };
 

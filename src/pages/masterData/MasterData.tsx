@@ -1,8 +1,7 @@
 import { Box, Button, TextField } from "@mui/material";
-import Header from "../../components/Header";
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import ViewFoto from "../../components/ViewFoto";
 import { useSnackbar } from "notistack";
 import AddIcon from '@mui/icons-material/Add';
@@ -11,12 +10,14 @@ import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SearchIcon from '@mui/icons-material/Search';
 import Pagination from "../../models/Pagination";
-import ViewRuas from "./ViewRuas";
-import AddRuas from "./AddRuas";
-import DeleteRuas from "./DeleteRuas";
-import UpdateRuas from "./UpdateRuas";
 import useRuas from "../../components/hooks/useRuas";
 import { useNavigate } from "react-router-dom";
+import Loading from "../../components/Loading";
+const Header = lazy(() => import('../../components/Header'));
+const ViewRuas = lazy(() => import('./ViewRuas'));
+const AddRuas = lazy(() => import('./AddRuas'));
+const DeleteRuas = lazy(() => import('./DeleteRuas'));
+const UpdateRuas = lazy(() => import('./UpdateRuas'))
 
 const MasterData:React.FC = () => {
     const API_URL = `${process.env.REACT_APP_API_URL}`;
@@ -200,7 +201,7 @@ const MasterData:React.FC = () => {
     };
     
     return(
-        <div>
+        <Suspense fallback={<Loading />}>
             <Header />
             <div className="px-48 py-2 flex flex-col">
                 <p className="text-3xl font-bold mt-2"><span>Master Data</span></p>
@@ -278,7 +279,7 @@ const MasterData:React.FC = () => {
                 id={selectedRow}
             />
 
-        </div>
+        </Suspense>
     )
 };
 

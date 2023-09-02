@@ -1,4 +1,4 @@
-import { Fragment, forwardRef } from 'react';
+import { Fragment, forwardRef, memo } from 'react';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -49,4 +49,4 @@ const DeleteRuas: React.FC<{open: boolean, handleClose: () => void, deleteRuas: 
   );
 };
 
-export default DeleteRuas;
+export default memo(DeleteRuas);

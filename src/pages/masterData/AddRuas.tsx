@@ -1,4 +1,4 @@
-import { useState, Fragment, ChangeEvent, useEffect } from 'react';
+import { useState, Fragment, ChangeEvent, useEffect, memo } from 'react';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -349,4 +349,4 @@ const AddRuas:React.FC<
   );
 }
 
-export default AddRuas;
+export default memo(AddRuas);
