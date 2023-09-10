@@ -1,35 +1,24 @@
 import { Button } from "@mui/material";
-import { BarChart } from '@mui/x-charts/BarChart';
-import { PieChart, pieArcLabelClasses } from '@mui/x-charts/PieChart';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import axios from "axios";
-import { Suspense, lazy, useEffect, useState } from "react";
-import ViewFoto from "../../components/ViewFoto";
-import { useNavigate } from "react-router-dom";
-import { useSnackbar } from "notistack";
-import Pagination from "../../models/Pagination";
-import Chart from '../../models/Chart'
-import useRuas from "../../components/hooks/useRuas";
-import Loading from "../../components/Loading";
-const Header = lazy(() => import('../../components/Header'));
+import { Suspense, useEffect, useState } from "react";
+import ViewFoto from "../../ViewFoto";
+import { useLoaderData } from "react-router-dom";
+import Pagination from "../../../models/Pagination";
+import useRuas from "../../../hooks/useRuas";
+import Loading from "../../Loading";
+import { json, defer, Await } from "react-router-dom";
+import CustomerChartBar from "./CustomeChartBar";
+import CustomerChartPie from "./CustomeChartPie";
 
-type Cache = {
-    [key: string]: number
-};
+const API_URL = `${process.env.REACT_APP_API_URL}`;
 
-type DataChart = Chart[]
-  
-const Home:React.FC = () => {
-    const API_URL = `${process.env.REACT_APP_API_URL}`;
+const Dashboard:React.FC = () => {
     const [openFoto, setOpenFoto] = useState(false);
     const [foto, setFoto] = useState('');
-    const [xLabels, setXLabels] = useState<string[]>([])
-    const [pData, setPData] = useState<number[]>([0]);
-    const [dataChart, setDataChart] = useState<DataChart>([]);
-    const navigate = useNavigate();
-    const { enqueueSnackbar } = useSnackbar();
-    const {setTotalRow, totalRow, setRows, rows, setPagination, pagination, fetchDataRuas}  = useRuas();
-
+    const {setPagination, totalRow, rows, pagination, fetchDataRuas}  = useRuas();
+    const data =  useLoaderData() as any;
+   
     const columns: GridColDef[] = [
         { 
             field: "id", 
@@ -112,58 +101,6 @@ const Home:React.FC = () => {
         fetchDataRuas()
     }, [pagination]);
 
-    useEffect(() => {
-        fetchDataRuasChart()
-    }, [])
-
-    const fetchDataRuasChart = async() => {
-        try {
-            let params = `per_page=100&page=1`
-            const response = await axios.get(`${API_URL}/ruas?${params}`, {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem("token")}`
-                }
-            });
-
-            if(response.status){
-                setRows(response.data.data);
-                setTotalRow(response.data.total)
-
-                const cache: Cache = {}
-        
-                for(let ruas of response.data.data){
-                    if(ruas.unit_id in cache) {
-                        cache[ruas.unit_id] += 1
-                    } else {
-                        cache[ruas.unit_id] = 1
-                    }
-                }
-                
-                const values = Object.values(cache);
-                const keys = Object.keys(cache).map(item => `Unit ${item}`);
-                const chart = keys.map((key, index) => {
-                    const value = values[index];
-                    return{
-                        label : key,
-                        value : value
-                    }
-                })
-                setXLabels(keys)
-                setPData(values)
-                setDataChart(chart)
-                
-            } else {
-                enqueueSnackbar('something went wrong', { variant: "error"});
-            }
-        } catch (error: any) {
-            if(error.response.status === 401){
-                navigate('/login')
-                return enqueueSnackbar(error.response.statusText, { variant: "error"});
-            }  
-            return enqueueSnackbar(error.response.statusText, { variant: "error"});
-        }
-    };
-
     const handlePageChange = (pagination: any) => {    
         setPagination((prev: Pagination) => {
             return{
@@ -173,46 +110,23 @@ const Home:React.FC = () => {
             }
         })
     }
-    
+
     return(
         <Suspense fallback={<Loading />}>
-            <Header />
             <div className="px-48 py-2 flex flex-col">
                 <p className="text-3xl font-bold mt-2"><span>Dashboard</span></p>
                 <div className="flex flex-row">
                     <div className="flex-initial w-8/12 justify-items-center">
-                            <BarChart
-                                width={800}
-                                height={400}
-                                series={[
-                                    { data: pData, label: 'Jumlah Ruas', id: 'pvId', stack: 'total' },
-                                ]}
-                                xAxis={[{ data: xLabels, scaleType: 'band' }]}
-                            />
+                        <Await resolve={data.data} errorElement={ <p className="text-2xl text-red-500">cant't load chart bar</p>}>
+                           {(loadEvent: any) => <CustomerChartBar data={loadEvent}/>}        
+                         </Await>
                     </div>
 
                     <div className="w-8/12 grid place-items-center">
-                        <PieChart
-                            series={
-                                [
-                                    {
-                                        arcLabel: (item) => `${item.label} (${item.value})`,
-                                        arcLabelMinAngle: 45,
-                                        data: dataChart,
-                                    },
-                                ]
-                            }
-                            sx={
-                                    {
-                                        [`& .${pieArcLabelClasses.root}`]: {
-                                            fill: 'white',
-                                            fontWeight: 'bold',
-                                        },
-                                    }
-                                }
-                            width= {500}
-                            height={250}
-                        />
+                        <Await resolve={data.data} errorElement={ <p className="text-2xl text-red-500">can't load pie bar</p>}>
+                            {(loadEvent: any) => <CustomerChartPie data={loadEvent}/>}  
+                        </Await>
+                        
                     </div>
                 </div>
 
@@ -253,4 +167,62 @@ const Home:React.FC = () => {
     )
 };
 
-export default Home;
+export default Dashboard;
+
+const loadChart = async() => {
+    try {
+        let params = `per_page=100&page=1`
+        const response = await axios.get(`${API_URL}/ruas?${params}`, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`
+            }
+        });
+        
+        if(response.status){
+
+            type Cache = {
+                [key: string]: number
+            };
+
+            const cache: Cache = {}
+    
+            for(let ruas of response.data.data){
+                if(ruas.unit_id in cache) {
+                    cache[ruas.unit_id] += 1
+                } else {
+                    cache[ruas.unit_id] = 1
+                }
+            }
+            
+            const values = Object.values(cache);
+            const keys = Object.keys(cache).map(item => `Unit ${item}`);
+            const chart = keys.map((key, index) => {
+                const value = values[index];
+                return{
+                    label : key,
+                    value : value
+                }
+            })
+
+            const result = {
+                rows: response.data.data,
+                totalRow: response.data.total,
+                keys: keys,
+                values: values,
+                chart: chart
+            }
+            return result
+            
+        } else {
+            throw json( { message: 'Could not fetch Dashboard.' }, { status: 500});
+        }
+    } catch (error: any) {
+        throw new Response(error.response.statusText, { status: 500 });
+    }
+};
+
+export async function loader() {
+    return defer({
+        data: loadChart(),
+    });
+}

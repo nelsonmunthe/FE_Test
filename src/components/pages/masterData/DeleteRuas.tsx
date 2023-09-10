@@ -18,9 +18,9 @@ const Transition = forwardRef(function Transition(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const DeleteRuas: React.FC<{open: boolean, handleClose: () => void, deleteRuas: () => void}> = ({open, handleClose, deleteRuas})  => {
+const DeleteRuas: React.FC<{open: boolean, handleClose: () => void}> = ({open, handleClose})  => {
     const onSubmitHandler = () => {
-        deleteRuas()
+        return true
     }
 
   return (

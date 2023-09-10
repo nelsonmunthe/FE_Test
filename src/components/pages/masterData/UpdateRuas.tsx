@@ -11,9 +11,8 @@ import Checkbox from '@mui/material/Checkbox';
 import axios from 'axios';
 import { useSnackbar } from 'notistack';
 import CircularProgress from '@mui/material/CircularProgress';
-import NewRuas from '../../models/NewRuas';
+import NewRuas from '../../../models/NewRuas';
 import { useNavigate } from 'react-router-dom';
-
 const API_URL = `${process.env.REACT_APP_API_URL}`;
 
 const data = {
@@ -48,17 +47,19 @@ function PaperComponent(props: PaperProps) {
   );
 }
 
-const AddRuas:React.FC<
+const UpdateRuas:React.FC<
     {
         open: boolean,
         onClose: () => void,
-        fetchDataRuas: () => void
+        fetchDataRuas: () => void,
+        id?: Array<number> | undefined
     }
 > =(
     {
         open,
         onClose,
-        fetchDataRuas
+        fetchDataRuas,
+        id
     }
 ) => {
     const [newRuas, setNewRuas] = useState<NewRuas>(data)
@@ -78,6 +79,30 @@ const AddRuas:React.FC<
             refresh = false;
         }
     }, [])
+
+    useEffect(() => {
+        getRuas()
+    }, [id])
+    
+    const getRuas = async () => {
+        try {
+            if(!open) return
+            const units = await axios(`${API_URL}/ruas/${id![0]}`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`
+                }
+            })
+            if(units.status === 200){
+                setNewRuas(units.data.data)
+            }
+        } catch (error: any) {
+            if(error.response.status === 401) {
+                navigate('/login')
+                return enqueueSnackbar(error.response.statusText, { variant: "error"});
+            }
+            enqueueSnackbar('Failed get detail', { variant: "error"});
+        }
+    }
 
 
     const onChangeRuasName = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -139,10 +164,12 @@ const AddRuas:React.FC<
         try {
             setLoading(true)
             if(!newRuas.unit_id || !newRuas.ruas_name || !newRuas.long || !newRuas.km_awal || !newRuas.km_akhir || !newRuas.status || !fileList || !photo){
+                setLoading(false)
                 return enqueueSnackbar('Invalid Form', { variant: "error"});
             }
             
             const body = {
+                _method: 'PUT',
                 unit_id: newRuas.unit_id,
                 ruas_name: newRuas.ruas_name,
                 long: newRuas.long,
@@ -153,13 +180,15 @@ const AddRuas:React.FC<
                 photo: photo
             }
             
-            const posting = await axios.post(`${API_URL}/ruas`, body, {
+            const posting = await axios.post(`${API_URL}/ruas/${id![0]}`, body, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("token")}`,
-                    "Content-Type": "multipart/form-data",
+                    'Accept': 'application/json',
+                    'Content-Type': 'multipart/form-data',
                 }
             })
-            if(posting.status === 201) {
+            
+            if(posting.status === 200) {
                 fetchDataRuas()
                 setNewRuas(data)
                 setLoading(false)
@@ -173,10 +202,10 @@ const AddRuas:React.FC<
             
         } catch (error: any) {
             setLoading(false)
-            if(error.response.status === 401){
+            if(error.response.status === 401) {
                 navigate('/login')
                 return enqueueSnackbar(error.response.statusText, { variant: "error"});
-            }  
+            }
             return enqueueSnackbar(error.response.statusText, { variant: "error"});
         }
     };
@@ -197,10 +226,10 @@ const AddRuas:React.FC<
                 setUnits(unitId)
             }
         } catch (error: any) {
-            if(error.response.status === 401){
+            if(error.response.status === 401) {
                 navigate('/login')
                 return enqueueSnackbar(error.response.statusText, { variant: "error"});
-            }  
+            }
             return enqueueSnackbar(error.response.statusText, { variant: "error"});
         }
     }
@@ -209,7 +238,6 @@ const AddRuas:React.FC<
         if(event.target.files){
             setPhoto(event.target.files[0]);
         }
-        
     };
 
     const onChangeFile = (event: ChangeEvent<HTMLInputElement>) => {
@@ -228,7 +256,7 @@ const AddRuas:React.FC<
         maxWidth={false}
       >
         <DialogTitle style={{ cursor: 'move' }} id="draggable-dialog-title">
-          Add New Ruas
+          Update Ruas
         </DialogTitle>
         <DialogContent>
           <div className='flex flex-col gap-4 w-auto'>
@@ -349,4 +377,4 @@ const AddRuas:React.FC<
   );
 }
 
-export default memo(AddRuas);
+export default memo(UpdateRuas);
